@@ -4,6 +4,7 @@
 #include "../SystemSetup.hpp"  
 #include "URIUtils.hpp"
 #include <string.h>
+#include <atomic>
 #include "../Circular/CircularCounter.hpp"
 
 #define WEBSOCKET_PROTOCOL "ws://"
@@ -14,7 +15,7 @@ class WebSocketClient: Builder<WebSocketClient>{
     bool myClientIsBuilt; 
     bool myKeepAliveIsBuilt;
     void (*myFrameCallback)(uint8_t**, size_t); 
-
+    std::atomic<bool> mySocketIsConnected;
     esp_websocket_client_config_t myWebSocketConfig = {};
     esp_websocket_client_handle_t myClient; 
     uint8_t* myFrameBuffer;  
@@ -22,10 +23,12 @@ class WebSocketClient: Builder<WebSocketClient>{
   
 
     static void webSocketClientFrameHandler(void *aHandlerArgs, esp_event_base_t aBase, int32_t aEventId, void *aEventData){ 
-        if (aEventId != WEBSOCKET_EVENT_DATA) return;
-        
         esp_websocket_event_data_t* theEventData = static_cast<esp_websocket_event_data_t*>(aEventData);
         WebSocketClient* theInstance = static_cast<WebSocketClient*>(aHandlerArgs);
+
+        if (aEventId == WEBSOCKET_EVENT_CONNECTED) { theInstance->mySocketIsConnected = true; return; }
+        if (aEventId == WEBSOCKET_EVENT_DISCONNECTED || aEventId == WEBSOCKET_EVENT_ERROR) { theInstance->mySocketIsConnected = false; return; }
+        if (aEventId != WEBSOCKET_EVENT_DATA) return;
 
         int thePayloadFullLen = theEventData->payload_len;
         int thePayloadOffsetLen = theEventData->payload_offset;
@@ -46,7 +49,8 @@ class WebSocketClient: Builder<WebSocketClient>{
         myClientIsBuilt=false; 
         myFrameBuffer =  nullptr; 
         myKeepAliveIsBuilt=true; 
-        myFrameSize=0;
+        myFrameSize=0; 
+        mySocketIsConnected=false;
     }
 
     WebSocketClient& buildFrameSize(size_t aFrameSize, size_t aBackendBufferSize){  
@@ -95,6 +99,7 @@ class WebSocketClient: Builder<WebSocketClient>{
     } 
 
     void sendBytes(uint8_t* aBytesToSend, size_t aBytesToSendLen, TickType_t aTicksToWait){ 
+        if(!mySocketIsConnected.load())return;
         esp_websocket_client_send_bin(myClient, (const char *)aBytesToSend, aBytesToSendLen, aTicksToWait); //const char needed as that's how the api was written
     }
 

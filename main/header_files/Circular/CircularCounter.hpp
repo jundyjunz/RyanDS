@@ -23,4 +23,12 @@ class CircularCounter{
 
     operator int(){ return myValue; }
 
+    size_t peek(){ 
+        return (myValue+1)%myMax;
+    } 
+
+    size_t getMax(){ 
+        return myMax;
+    }
+
 };

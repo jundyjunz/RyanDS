@@ -88,6 +88,14 @@ class ControllerConnection{
         myController++;
         connectToController(); 
         return *this;
+    } 
+
+    size_t getCurrentControllerIndex(){ 
+        return myController;
+    }
+
+    size_t getNextControllerIndex(){ 
+        return myController.peek();
     }
 };
 
@@ -145,8 +153,12 @@ class InitControllerTask{
         .buildCallBack(11,[](int aLevel){myConnection->setByteBuffer(aLevel, 3, 4);})//ztrigger
         .buildCallBack(12,[](int aLevel){ 
             if(aLevel){ 
-               ++(*myConnection); 
-               SystemLED::getInstance().writeColor(0,0,255);
+                
+                if(myConnection->getNextControllerIndex() == 0) SystemLED::getInstance().writeColor(0,0,255);
+                if(myConnection->getNextControllerIndex() == 1) SystemLED::getInstance().writeColor(0,255,0);
+                if(myConnection->getNextControllerIndex() == 2) SystemLED::getInstance().writeColor(255,0,0);
+
+                ++(*myConnection); 
             }  
         })
         .buildCallBack(13,[](int aLevel){})
