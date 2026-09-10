@@ -1,0 +1,5 @@
+dependencies:
+  espressif/esp_websocket_client: ^1.0.0
+  espressif/cJSON: ^1.7.0
+  espressif/esp_new_jpeg: '*'
+  espressif/led_strip: "^2.5.0"
