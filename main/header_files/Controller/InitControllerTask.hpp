@@ -19,6 +19,11 @@
 #define LOWER_BOUND 500
 #define BLINK_AMT 5
 #define PORT_FRAME_RATE_MS 4
+
+#define BLUE_CONTROLLER 0
+#define GREEN_CONTROLLER 1
+#define RED_CONTROLLER 2
+
 class ControllerConnection{ 
     private: 
     WebSocketClient myWebSocketClient; 
@@ -154,9 +159,9 @@ class InitControllerTask{
         .buildCallBack(12,[](int aLevel){ 
             if(aLevel){ 
                 
-                if(myConnection->getNextControllerIndex() == 0) SystemLED::getInstance().writeColor(0,0,255);
-                if(myConnection->getNextControllerIndex() == 1) SystemLED::getInstance().writeColor(0,255,0);
-                if(myConnection->getNextControllerIndex() == 2) SystemLED::getInstance().writeColor(255,0,0);
+                if(myConnection->getNextControllerIndex() == BLUE_CONTROLLER) SystemLED::getInstance().writeColor(0,0,255);
+                if(myConnection->getNextControllerIndex() == GREEN_CONTROLLER) SystemLED::getInstance().writeColor(0,255,0);
+                if(myConnection->getNextControllerIndex() == RED_CONTROLLER) SystemLED::getInstance().writeColor(255,0,0);
 
                 ++(*myConnection); 
             }  
